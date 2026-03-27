@@ -290,6 +290,11 @@
             background: linear-gradient(180deg, var(--btn-dorado), #cf7a1f);
         }
         .side-actions .btn-action:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(16,16,16,0.12); }
+        .side-actions .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         #status {
             margin-top: 10px;
@@ -374,7 +379,7 @@
 
         <!-- DERECHA: botón largo "MAR & BEACH" -->
         <div class="side-actions" aria-hidden="false">
-            <button class="btn-action" onclick="copiar()">MAR & BEACH</button>
+            <button class="btn-action" id="btn-copiar" onclick="copiar()">MAR & BEACH</button>
         </div>
     </div>
 </div>
@@ -423,7 +428,7 @@
         zh: { h: "尊敬的先生", m: "尊敬的女士" }
     };
 
-    const mensajes = {
+    let mensajes = {
         es: "{saludo} {a},\n\nTal como comentamos durante su check-in, en Iberostar Waves Paraíso del Mar & Beach queremos agradecerle nuevamente su lealtad como miembro {nivel} de IHG One Rewards. Nos da mucho gusto recibirle y que nos haya elegido para su estancia.\n\nEsperamos que disfrute cada momento con nosotros y que tenga una experiencia muy especial.\n\nPara cualquier asistencia durante su estancia, con gusto estamos a su disposición en las extensiones 8232, 8214 o 8113.\n\nSaludos cordiales,\nEquipo de Recepción",
         en: "{saludo} {a},\n\nAs we mentioned during your check-in, at Iberostar Waves Paraíso del Mar & Beach we would like to thank you once again for your loyalty as a {nivel} member of IHG One Rewards. It is our pleasure to welcome you, and we truly appreciate you choosing us for your stay.\n\nWe hope you enjoy every moment with us and that your stay is a memorable one.\n\nFor any assistance during your stay, please feel free to contact us at extensions 8232, 8214, or 8113.\n\nKind regards,\nFront Desk Team",
         de: "{saludo} {a},\n\nwie wir während Ihres Check-ins erwähnt haben, möchten wir Ihnen im Iberostar Waves Paraíso del Mar & Beach erneut für Ihre Treue als {nivel}-Mitglied von IHG One Rewards danken. Es ist uns eine Freude, Sie willkommen zu heißen, und wir schätzen es sehr, dass Sie sich für uns entschieden haben.\n\nWir hoffen, dass Sie jeden Moment bei uns genießen und Ihren Aufenthalt unvergesslich finden.\n\nFür jede Unterstützung während Ihres Aufenthalts stehen wir Ihnen gerne unter den Durchwahlen 8232, 8214 oder 8113 zur Verfügung.\n\nMit freundlichen Grüßen,\nEmpfangsteam",
@@ -432,6 +437,32 @@
         it: "{saludo} {a},\n\nCome le abbiamo menzionato durante il check-in, all'Iberostar Waves Paraíso del Mar & Beach desideriamo ringraziarla nuovamente per la sua fedeltà come membro {nivel} di IHG One Rewards. È un piacere darle il benvenuto e apprezziamo molto che abbia scelto noi per il suo soggiorno.\n\nSperiamo che possa godere di ogni momento con noi e che il suo soggiorno sia indimenticabile.\n\nPer qualsiasi assistenza durante il soggiorno, siamo a sua disposizione agli interni 8232, 8214 o 8113.\n\nCordiali saluti,\nTeam di Ricevimento",
         zh: "{saludo} {a}，\n\n正如我们在您办理入住手续时所提到的，Iberostar Waves Paraíso del Mar & Beach 衷心感谢您作为 IHG One Rewards {nivel} 会员的忠诚支持。很高兴欢迎您的到来，感谢您选择我们作为您的住宿地点。\n\n希望您享受与我们在一起的每一刻，并留下美好的回忆。\n\n如在住宿期间需要任何协助，请随时拨打分机 8232、8214 或 8113 与我们联系。\n\n顺致嘉德，\n前台团队"
     };
+
+    // ─── Cargar mensajes desde Sheets al iniciar ──────────────────────────────
+    (function cargarMensajesDesdeSheets() {
+        try {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                document.getElementById('btn-copiar').disabled = true;
+                document.getElementById('status').innerText = 'Cargando...';
+                google.script.run
+                    .withSuccessHandler(function(data) {
+                        if (data && typeof data === 'object' && data.es) {
+                            mensajes = data;
+                        }
+                        document.getElementById('btn-copiar').disabled = false;
+                        document.getElementById('status').innerText = '';
+                    })
+                    .withFailureHandler(function(err) {
+                        console.warn('Usando mensajes predeterminados.', err);
+                        document.getElementById('btn-copiar').disabled = false;
+                        document.getElementById('status').innerText = '';
+                    })
+                    .getMensajesWaves();
+            }
+        } catch(e) {
+            console.warn('google.script.run no disponible:', e);
+        }
+    })();
 
     function setLang(lang, btn) {
         currentLang = lang;
@@ -468,9 +499,11 @@
 
         let base = mensajes[currentLang];
         let final = base
-            .replace(/{saludo}/g, saludoFinal)
-            .replace(/{a}/g, apellido)
-            .replace(/{nivel}/g, currentNivel);
+            .replace(/\{\{apellido\}\}/g, apellido)
+            .replace(/\{\{nivel\}\}/g,    currentNivel)
+            .replace(/{saludo}/g,         saludoFinal)
+            .replace(/{a}/g,              apellido)
+            .replace(/{nivel}/g,          currentNivel);
 
         navigator.clipboard.writeText(final).then(() => {
             const st = document.getElementById('status');
