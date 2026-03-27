@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Iberostar Waves - Mar & Beach</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --fondo-azul: #ae600c;       /* color de botón seleccionado (naranja/dorado) */
+            --btn-dorado: #e69138;      /* color principal de botones */
+            --header-bg: #e69138;
+            --btn-borrar: #ffdfc3;
+            --blanco: #ffffff;
+            --gris-suave: #f0f2f5;
+            --texto-oscuro: #4e2c08;    /* color oscuro para labels y textos */
+            --drag-box: #ffe5cb;        /* color del cuadrito de arrastre */
+        }
+
+        /* Backdrop slider (fondo en fade) */
+        .bg-slider {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .bg-slide {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 1000ms ease;
+            will-change: opacity, transform;
+            transform-origin: center center;
+            animation: ken 15s ease-in infinite alternate;
+        }
+        .bg-slide.active { opacity: 1; }
+        @keyframes ken { from { transform: scale(1.25); } to { transform: scale(1.08); } }
+
+        /* Reset / base */
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #0f2a3a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* CONTENEDOR: tamaño fijo */
+        .container {
+            background: linear-gradient(to bottom, var(--header-bg) 135px, white 135px);
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            width: 500px;
+            max-width: 95vw;
+            text-align: center;
+            overflow: hidden;
+            padding: 0;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* ENCABEZADO */
+        #header-no-drag {
+            padding: 20px;
+            height: 135px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .logo-estrella { width: 50px; margin-bottom: 5px; filter: brightness(0) invert(1); transform-origin: center center; animation: spinGrow 700ms cubic-bezier(.2,.8,.2,1) forwards; will-change: transform; }
+        .logo-estrella:hover { animation: hoverSpin 300ms linear; }
+        @keyframes spinGrow { from { transform: scale(0.3) rotate(-90deg); } to { transform: scale(1) rotate(0deg); } }
+        @keyframes hoverSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        h2 { color: white; margin: 0; font-weight: 400; letter-spacing: 2px; font-size: 18px; }
+        .subtitle { font-size: 14.5px; color: rgba(255,255,255,0.95); margin-top: 2px; }
+
+        /* CUERPO: grid con columna izquierda reordenable y columna derecha con botón largo */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 130px; /* izquierda reordenable, derecha botón */
+            gap: 14px;
+            padding: 12px 20px 22px 20px;
+            align-items: stretch; /* para que la columna derecha ocupe la altura del conjunto izquierdo */
+        }
+
+        /* AREA REORDENABLE (izquierda) */
+        #reordenar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sort-item {
+            padding: 10px 12px;
+            margin-bottom: 0;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            cursor: grab;
+            transition: background 0.18s, border 0.18s;
+            position: relative;
+            background: white;
+            font-size: 14px;
+            text-align: left;
+            padding-top: 20px;
+        }
+        .sort-item:hover {
+            background: #fdfdfd;
+            border: 1.5px dashed #ccc;
+            transform: translateY(-2.5px);
+            filter: brightness(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+        }
+        .sort-item::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            right: 12px;
+            width: 18px;
+            height: 18px;
+            background: var(--drag-box);
+            border-radius: 6px;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+            pointer-events: none;
+            z-index: 3;
+        }
+        .sort-item::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            width: 8px;
+            height: 2px;
+            background: #c17f3b;
+            box-shadow: 0 4px 0 #c17f3b, 0 8px 0 #c17f3b;
+            border-radius: 1px;
+            pointer-events: none;
+            z-index: 4;
+        }
+        .sortable-ghost {
+            opacity: 0.3;
+            background: var(--btn-borrar) !important;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 6px;
+            color: var(--texto-oscuro);
+            font-size: 11px;
+            text-transform: uppercase;
+            text-align: left;
+            letter-spacing: 0.06em;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            text-align: center;
+            outline: none;
+        }
+
+        /* GRID TRATO (Género) con "Mujer" / "Hombre" */
+        .grid-trato {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .btn-trato {
+            background: var(--gris-suave);
+            border: 2px solid transparent;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            color: var(--texto-oscuro);
+            width: 100%;
+            box-sizing: border-box;
+            transition: background 0.18s, border-color 0.18s, color 0.18s, transform 140ms, box-shadow 140ms;
+        }
+        .btn-trato.active {
+            border-color: var(--btn-dorado);
+            background: #ffe5cb;
+            color: var(--texto-oscuro);
+        }
+        .btn-trato:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 6px 10px rgba(16,16,16,0.06);
+        }
+
+        /* GRID DE IDIOMAS (abajo) */
+        .grid-idiomas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .btn-lang {
+            background: var(--gris-suave);
+            border: 2px solid transparent;
+            padding: 10px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--texto-oscuro);
+            text-transform: uppercase;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background 0.18s, color 0.18s, border-color 0.18s, transform 140ms, box-shadow 140ms;
+        }
+        .btn-lang.active {
+            background: var(--fondo-azul);
+            color: white;
+            border-color: var(--fondo-azul);
+        }
+        .btn-lang:not(.active):hover {
+            transform: translateY(-8px);
+            box-shadow: 0 6px 10px rgba(16,16,16,0.06);
+        }
+        .btn-lang[style] { text-align: center; }
+
+        /* COLUMNA DERECHA: un solo botón largo ("MAR & BEACH") que ocupa la altura del contenedor izquierdo */
+        .side-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+            justify-content: stretch;
+            align-self: stretch;
+            height: 100%;
+            padding: 6px 0;
+        }
+        .side-actions .btn-action {
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+            font-size: 15px;
+            transition: transform 140ms, box-shadow 140ms;
+            flex: 1; /* ocupa todo el espacio disponible */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: linear-gradient(180deg, var(--btn-dorado), #cf7a1f);
+        }
+        .side-actions .btn-action:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(16,16,16,0.12); }
+
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #2ecc71;
+            height: 20px;
+            padding-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* Responsive: en pantallas pequeñas, apilar y mostrar botón abajo como ancho completo */
+        @media (max-width: 520px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .side-actions { flex-direction: row; gap: 8px; }
+            .side-actions .btn-action { flex: 1; height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-slider" aria-hidden="true">
+    <div class="bg-slide" style="background-image: linear-gradient(rgba(33,43,99,0.6), rgba(20,26,60,0.8)), url('https://apiimg.iberostar.com/uploads/image/88306/image.jpeg');"></div>
+    <div class="bg-slide" style="background-image: linear-gradient(rgba(33,43,99,0.6), rgba(20,26,60,0.8)), url('https://z.cdrst.com/foto/hotel-sf/132a2ed6/granderesp/foto-hotel-132a242c.jpg');"></div>
+    <div class="bg-slide" style="background-image: linear-gradient(rgba(33,43,99,0.6), rgba(20,26,60,0.8)), url('https://digital.ihg.com/is/image/ihg/independent-riviera-maya-9034448709-2x1');"></div>
+    <div class="bg-slide" style="background-image: linear-gradient(rgba(33,43,99,0.6), rgba(20,26,60,0.8)), url('https://digital.ihg.com/is/image/ihg/independent-riviera-maya-9034398519-4x3');"></div>
+    <div class="bg-slide" style="background-image: linear-gradient(rgba(33,43,99,0.6), rgba(20,26,60,0.8)), url('https://z.cdrst.com/foto/hotel-sf/132a2eea/granderesp/foto-hotel-132a2440.jpg');"></div>
+</div>
+
+<div class="container">
+    <div id="header-no-drag">
+        <img src="https://assets4.cdn.iberostar.com/assets/star-72ad538f27d41b1d6bc65d4350faed1f19ddb66cb537e4b002a45f4d6803962a.png" class="logo-estrella" alt="estrella">
+        <h2>IBEROSTAR WAVES</h2>
+        <div class="subtitle">Paraíso Mar & Beach</div>
+    </div>
+
+    <div class="content-grid">
+        <!-- IZQUIERDA: area reordenable con APPELLIDO arriba, GÉNERO en medio, IDIOMAS abajo -->
+        <div id="reordenar-container">
+            <!-- Apellido (primero) -->
+            <div class="sort-item" draggable="true" data-wys-id="w4kn67bj" data-wys-selected="1">
+                <label>Apellido del Huésped</label>
+                <input type="text" id="apellido" placeholder="Escriba o pegue..." autocomplete="off">
+            </div>
+
+            <!-- Género (segundo) -->
+            <div class="sort-item" draggable="true" data-wys-id="w4kn67bj" data-wys-selected="1">
+                <label>Género</label>
+                <div class="grid-trato">
+                    <button class="btn-trato" id="btn-m" onclick="setTrato('m')">Mujer</button>
+                    <button class="btn-trato active" id="btn-h" onclick="setTrato('h')">Hombre</button>
+                </div>
+            </div>
+
+            <!-- Idiomas (tercero, abajo) -->
+            <div class="sort-item" draggable="true" data-wys-id="w4kn67bj" data-wys-selected="1">
+                <label>Seleccionar Idioma</label>
+                <div class="grid-idiomas">
+                    <button class="btn-lang active" onclick="setLang('es', this)">ESPAÑOL</button>
+                    <button class="btn-lang" onclick="setLang('en', this)">INGLÉS</button>
+                    <button class="btn-lang" onclick="setLang('fr', this)">FRANCÉS</button>
+                    <button class="btn-lang" onclick="setLang('pt', this)">PORTUGUÊS</button>
+                    <button class="btn-lang" onclick="setLang('it', this)">ITALIANO</button>
+                    <button class="btn-lang" onclick="setLang('de', this)">ALEMÁN</button>
+                    <button class="btn-lang" style="grid-column: span 3;" onclick="setLang('zh', this)">CHINO</button>
+                </div>
+            </div>
+
+            <div id="status"></div>
+        </div>
+
+        <!-- DERECHA: un solo botón largo "MAR & BEACH" fuera del área reordenable -->
+        <div class="side-actions" aria-hidden="false">
+            <button class="btn-action" onclick="copiar()">MAR & BEACH</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Slider: inicialización y preload
+    (function() {
+        const slides = Array.from(document.querySelectorAll('.bg-slide'));
+        if (!slides.length) return;
+        slides.forEach((s, i) => { if (i === 0) s.classList.add('active'); });
+        slides.forEach(s => {
+            const m = (s.style.backgroundImage || '').match(/url\(['"]?(.*?)['"]?\)/);
+            if (m && m[1]) {
+                const img = new Image();
+                img.src = m[1];
+            }
+        });
+        let idx = slides.findIndex(s => s.classList.contains('active'));
+        if (idx < 0) idx = 0;
+        setInterval(() => {
+            slides[idx].classList.remove('active');
+            idx = (idx + 1) % slides.length;
+            slides[idx].classList.add('active');
+        }, 15000);
+    })();
+
+    // Inicializar Sortable en la columna izquierda (reordenar-container)
+    const reordenarArea = document.getElementById('reordenar-container');
+    Sortable.create(reordenarArea, {
+        animation: 200,
+        easing: 'cubic-bezier(0.2,0.8,0.2,1)',
+        ghostClass: 'sortable-ghost',
+        filter: 'input, button, label',
+        preventOnFilter: false
+    });
+
+    // Estado actual
+    let currentLang = 'es';
+    let currentTrato = 'h'; // 'h' = Hombre, 'm' = Mujer
+
+    // Saludos por idioma y género (usando h/m)
+    const saludos = {
+        es: { h: "Estimado Sr.", m: "Estimada Sra." },
+        en: { h: "Dear Mr.", m: "Dear Ms." },
+        de: { h: "Sehr geehrter Herr", m: "Sehr geehrte Frau" },
+        fr: { h: "Cher M.", m: "Chère Mme" },
+        pt: { h: "Prezado Sr.", m: "Prezada Sra." },
+        it: { h: "Gentile Sig.", m: "Gentile Sig.ra" },
+        zh: { h: "尊敬的先生/女士", m: "尊敬的先生/女士" }
+    };
+
+    const mensajes = {
+        es: " {saludo} {a},\n\nEn Iberostar Waves Paraíso del Mar & Beach queremos agradecer sinceramente su lealtad como miembro de IHG One Rewards. Es un placer darle la bienvenida y saber que nos ha elegido para su estancia.\n\nEsperamos que disfrute cada momento con nosotros y que su visita sea una experiencia memorable.\n\nPara cualquier asistencia durante su estancia, puede contactarnos a las extensiones 8232, 8214 o 8113.\n\nSaludos cordiales,\nEquipo de Recepción",
+        en: " {saludo} {a},\n\nAt Iberostar Waves Paraíso del Mar & Beach, we would like to sincerely thank you for your loyalty as an IHG One Rewards member. It is a pleasure to welcome you and to know that you have chosen us for your stay.\n\nWe hope you enjoy every moment with us and that your visit is a memorable experience.\n\nPlease contact us at extensions 8232, 8214, or 8113.\n\nWarm regards,\nFront Desk Team",
+        de: " {saludo} {a},\n\nim Iberostar Waves Paraíso del Mar & Beach möchten wir uns herzlich für Ihre Treue als IHG One Rewards Mitglied bedanken. Es ist uns ein Vergnügen, Sie willkommen zu heißen.\n\nWir hoffen, dass Ihr Aufenthalt unvergesslich wird.\n\nDurchwahlnummern: 8232, 8214 o 8113.\n\nMit freundlichen Grüßen,\nEmpfangsteam",
+        fr: " {saludo} {a},\n\nÀ l'Iberostar Waves Paraíso del Mar & Beach, nous tenons à vous remercier sincèrement pour votre fidelité en tant que membre IHG One Rewards.\n\nPour toute assistance: extensions 8232, 8214 o 8113.\n\nCordialement,\nL'équipe de Réception",
+        pt: " {saludo} {a},\n\nNo Iberostar Waves Paraíso del Mar & Beach, queremos agradecer sua lealdade como membro do IHG One Rewards.\n\nRamais: 8232, 8214 ou 8113.\n\nAtenciosamente,\nEquipe de Recepção",
+        it: " {saludo} {a},\n\na nome di Iberostar Waves Paraíso del Mar & Beach desideriamo ringraziarla per la sua fedeltà come membro IHG One Rewards.\n\nInterni: 8232, 8214 o 8113.\n\nCordiali saluti,\nTeam di Ricevimento",
+        zh: " {saludo} {a}，\n\nIberostar Waves Paraíso del Mar & Beach 衷心感谢您作为 IHG One Rewards 会员的忠诚支持。\n\n如需任何帮助，请拨打分机 8232、8214 或 8113。\n\n顺致嘉德，\n前台团队"
+    };
+
+    function setLang(lang, btn) {
+        currentLang = lang;
+        document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    function setTrato(trato) {
+        currentTrato = trato;
+        // botones con id btn-h (hombre) y btn-m (mujer)
+        const elH = document.getElementById('btn-h');
+        const elM = document.getElementById('btn-m');
+        if (elH) elH.classList.remove('active');
+        if (elM) elM.classList.remove('active');
+        const target = trato === 'h' ? elH : elM;
+        if (target) target.classList.add('active');
+    }
+
+    function corregirNombre(texto) {
+        if (!texto) return "Huésped";
+        let limpio = texto.trim().replace(/\s+/g, ' ');
+        return limpio.toLowerCase().split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+    }
+
+    // Copia el mensaje al portapapeles cuando se pulsa el botón lateral "MAR & BEACH"
+    function copiar() {
+        const inputNom = document.getElementById('apellido').value;
+        const apellido = corregirNombre(inputNom);
+        const saludoFinal = saludos[currentLang][currentTrato];
+
+        let base = mensajes[currentLang];
+        let final = base.replace(/{saludo}/g, saludoFinal).replace(/{a}/g, apellido);
+
+        navigator.clipboard.writeText(final).then(() => {
+            const st = document.getElementById('status');
+            st.innerText = "¡COPIADO!";
+            setTimeout(() => {
+                st.innerText = "";
+                limpiar();
+            }, 1200);
+        }).catch(() => {
+            const st = document.getElementById('status');
+            st.innerText = "Error al copiar";
+            setTimeout(() => { st.innerText = ""; }, 1500);
+        });
+    }
+
+    function limpiar() {
+        document.getElementById('apellido').value = "";
+        document.getElementById('apellido').focus();
+    }
+</script>
+
+</body>
+</html>
