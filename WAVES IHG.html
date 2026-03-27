@@ -7,17 +7,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
-            --fondo-azul: #ae600c;       /* color de botón seleccionado (naranja/dorado) */
-            --btn-dorado: #e69138;      /* color principal de botones */
+            --fondo-azul: #ae600c;
+            --btn-dorado: #e69138;
             --header-bg: #e69138;
             --btn-borrar: #ffdfc3;
             --blanco: #ffffff;
             --gris-suave: #f0f2f5;
-            --texto-oscuro: #4e2c08;    /* color oscuro para labels y textos */
-            --drag-box: #ffe5cb;        /* color del cuadrito de arrastre */
+            --texto-oscuro: #4e2c08;
+            --drag-box: #ffe5cb;
         }
 
-        /* Backdrop slider (fondo en fade) */
         .bg-slider {
             position: fixed;
             inset: 0;
@@ -40,7 +39,6 @@
         .bg-slide.active { opacity: 1; }
         @keyframes ken { from { transform: scale(1.25); } to { transform: scale(1.08); } }
 
-        /* Reset / base */
         * { box-sizing: border-box; }
         html, body { height: 100%; margin: 0; }
 
@@ -54,7 +52,6 @@
             padding: 10px;
         }
 
-        /* CONTENEDOR: tamaño fijo */
         .container {
             background: linear-gradient(to bottom, var(--header-bg) 135px, white 135px);
             border-radius: 15px;
@@ -68,7 +65,6 @@
             position: relative;
         }
 
-        /* ENCABEZADO */
         #header-no-drag {
             padding: 20px;
             height: 135px;
@@ -85,16 +81,14 @@
         h2 { color: white; margin: 0; font-weight: 400; letter-spacing: 2px; font-size: 18px; }
         .subtitle { font-size: 14.5px; color: rgba(255,255,255,0.95); margin-top: 2px; }
 
-        /* CUERPO: grid con columna izquierda reordenable y columna derecha con botón largo */
         .content-grid {
             display: grid;
-            grid-template-columns: 1fr 130px; /* izquierda reordenable, derecha botón */
+            grid-template-columns: 1fr 130px;
             gap: 14px;
             padding: 12px 20px 22px 20px;
-            align-items: stretch; /* para que la columna derecha ocupe la altura del conjunto izquierdo */
+            align-items: stretch;
         }
 
-        /* AREA REORDENABLE (izquierda) */
         #reordenar-container {
             display: flex;
             flex-direction: column;
@@ -175,7 +169,6 @@
             outline: none;
         }
 
-        /* GRID TRATO (Género) con "Mujer" / "Hombre" */
         .grid-trato {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -205,7 +198,40 @@
             box-shadow: 0 6px 10px rgba(16,16,16,0.06);
         }
 
-        /* GRID DE IDIOMAS (abajo) */
+        /* GRID NIVEL IHG */
+        .grid-nivel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .btn-nivel {
+            border: 2px solid transparent;
+            padding: 11px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            color: #ffffff;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.18s, transform 140ms, box-shadow 140ms, opacity 140ms;
+            opacity: 0.82;
+        }
+        .btn-nivel.active {
+            border-color: rgba(255,255,255,0.6);
+            opacity: 1;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }
+        .btn-nivel:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 6px 10px rgba(16,16,16,0.15);
+            opacity: 1;
+        }
+        .btn-nivel-diamond {
+            grid-column: span 2;
+        }
+
         .grid-idiomas {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -237,7 +263,6 @@
         }
         .btn-lang[style] { text-align: center; }
 
-        /* COLUMNA DERECHA: un solo botón largo ("MAR & BEACH") que ocupa la altura del contenedor izquierdo */
         .side-actions {
             display: flex;
             flex-direction: column;
@@ -257,7 +282,7 @@
             color: white;
             font-size: 15px;
             transition: transform 140ms, box-shadow 140ms;
-            flex: 1; /* ocupa todo el espacio disponible */
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -276,7 +301,6 @@
             font-size: 14px;
         }
 
-        /* Responsive: en pantallas pequeñas, apilar y mostrar botón abajo como ancho completo */
         @media (max-width: 520px) {
             .content-grid { grid-template-columns: 1fr; }
             .side-actions { flex-direction: row; gap: 8px; }
@@ -302,16 +326,16 @@
     </div>
 
     <div class="content-grid">
-        <!-- IZQUIERDA: area reordenable con APPELLIDO arriba, GÉNERO en medio, IDIOMAS abajo -->
+        <!-- IZQUIERDA: area reordenable -->
         <div id="reordenar-container">
             <!-- Apellido (primero) -->
-            <div class="sort-item" draggable="true" data-wys-id="w4kn67bj" data-wys-selected="1">
+            <div class="sort-item" draggable="true">
                 <label>Apellido del Huésped</label>
                 <input type="text" id="apellido" placeholder="Escriba o pegue..." autocomplete="off">
             </div>
 
             <!-- Género (segundo) -->
-            <div class="sort-item" draggable="true" data-wys-id="w4kn67bj" data-wys-selected="1">
+            <div class="sort-item" draggable="true">
                 <label>Género</label>
                 <div class="grid-trato">
                     <button class="btn-trato" id="btn-m" onclick="setTrato('m')">Mujer</button>
@@ -319,8 +343,20 @@
                 </div>
             </div>
 
-            <!-- Idiomas (tercero, abajo) -->
-            <div class="sort-item" draggable="true" data-wys-id="w4kn67bj" data-wys-selected="1">
+            <!-- Nivel IHG (tercero) -->
+            <div class="sort-item" draggable="true">
+                <label>Nivel IHG</label>
+                <div class="grid-nivel">
+                    <button class="btn-nivel active" id="btn-nivel-club" style="background-color:#6c8184;" onclick="setNivel('Club', this)">Club</button>
+                    <button class="btn-nivel" id="btn-nivel-silver" style="background-color:#666666;" onclick="setNivel('Silver Elite', this)">Silver Elite</button>
+                    <button class="btn-nivel" id="btn-nivel-gold" style="background-color:#a38b37;" onclick="setNivel('Gold Elite', this)">Gold Elite</button>
+                    <button class="btn-nivel" id="btn-nivel-platinum" style="background-color:#b7b7b7;" onclick="setNivel('Platinum Elite', this)">Platinum Elite</button>
+                    <button class="btn-nivel btn-nivel-diamond" id="btn-nivel-diamond" style="background-color:#072d33;" onclick="setNivel('Diamond Elite', this)">Diamond Elite</button>
+                </div>
+            </div>
+
+            <!-- Idiomas (cuarto) -->
+            <div class="sort-item" draggable="true">
                 <label>Seleccionar Idioma</label>
                 <div class="grid-idiomas">
                     <button class="btn-lang active" onclick="setLang('es', this)">ESPAÑOL</button>
@@ -336,7 +372,7 @@
             <div id="status"></div>
         </div>
 
-        <!-- DERECHA: un solo botón largo "MAR & BEACH" fuera del área reordenable -->
+        <!-- DERECHA: botón largo "MAR & BEACH" -->
         <div class="side-actions" aria-hidden="false">
             <button class="btn-action" onclick="copiar()">MAR & BEACH</button>
         </div>
@@ -344,17 +380,14 @@
 </div>
 
 <script>
-    // Slider: inicialización y preload
+    // Slider
     (function() {
         const slides = Array.from(document.querySelectorAll('.bg-slide'));
         if (!slides.length) return;
         slides.forEach((s, i) => { if (i === 0) s.classList.add('active'); });
         slides.forEach(s => {
             const m = (s.style.backgroundImage || '').match(/url\(['"]?(.*?)['"]?\)/);
-            if (m && m[1]) {
-                const img = new Image();
-                img.src = m[1];
-            }
+            if (m && m[1]) { const img = new Image(); img.src = m[1]; }
         });
         let idx = slides.findIndex(s => s.classList.contains('active'));
         if (idx < 0) idx = 0;
@@ -365,7 +398,7 @@
         }, 15000);
     })();
 
-    // Inicializar Sortable en la columna izquierda (reordenar-container)
+    // Sortable
     const reordenarArea = document.getElementById('reordenar-container');
     Sortable.create(reordenarArea, {
         animation: 200,
@@ -375,29 +408,29 @@
         preventOnFilter: false
     });
 
-    // Estado actual
+    // Estado
     let currentLang = 'es';
-    let currentTrato = 'h'; // 'h' = Hombre, 'm' = Mujer
+    let currentTrato = 'h';
+    let currentNivel = 'Club';
 
-    // Saludos por idioma y género (usando h/m)
     const saludos = {
         es: { h: "Estimado Sr.", m: "Estimada Sra." },
-        en: { h: "Dear Mr.", m: "Dear Ms." },
+        en: { h: "Dear Mr.", m: "Dear Mrs." },
         de: { h: "Sehr geehrter Herr", m: "Sehr geehrte Frau" },
         fr: { h: "Cher M.", m: "Chère Mme" },
         pt: { h: "Prezado Sr.", m: "Prezada Sra." },
         it: { h: "Gentile Sig.", m: "Gentile Sig.ra" },
-        zh: { h: "尊敬的先生/女士", m: "尊敬的先生/女士" }
+        zh: { h: "尊敬的先生", m: "尊敬的女士" }
     };
 
     const mensajes = {
-        es: " {saludo} {a},\n\nEn Iberostar Waves Paraíso del Mar & Beach queremos agradecer sinceramente su lealtad como miembro de IHG One Rewards. Es un placer darle la bienvenida y saber que nos ha elegido para su estancia.\n\nEsperamos que disfrute cada momento con nosotros y que su visita sea una experiencia memorable.\n\nPara cualquier asistencia durante su estancia, puede contactarnos a las extensiones 8232, 8214 o 8113.\n\nSaludos cordiales,\nEquipo de Recepción",
-        en: " {saludo} {a},\n\nAt Iberostar Waves Paraíso del Mar & Beach, we would like to sincerely thank you for your loyalty as an IHG One Rewards member. It is a pleasure to welcome you and to know that you have chosen us for your stay.\n\nWe hope you enjoy every moment with us and that your visit is a memorable experience.\n\nPlease contact us at extensions 8232, 8214, or 8113.\n\nWarm regards,\nFront Desk Team",
-        de: " {saludo} {a},\n\nim Iberostar Waves Paraíso del Mar & Beach möchten wir uns herzlich für Ihre Treue als IHG One Rewards Mitglied bedanken. Es ist uns ein Vergnügen, Sie willkommen zu heißen.\n\nWir hoffen, dass Ihr Aufenthalt unvergesslich wird.\n\nDurchwahlnummern: 8232, 8214 o 8113.\n\nMit freundlichen Grüßen,\nEmpfangsteam",
-        fr: " {saludo} {a},\n\nÀ l'Iberostar Waves Paraíso del Mar & Beach, nous tenons à vous remercier sincèrement pour votre fidelité en tant que membre IHG One Rewards.\n\nPour toute assistance: extensions 8232, 8214 o 8113.\n\nCordialement,\nL'équipe de Réception",
-        pt: " {saludo} {a},\n\nNo Iberostar Waves Paraíso del Mar & Beach, queremos agradecer sua lealdade como membro do IHG One Rewards.\n\nRamais: 8232, 8214 ou 8113.\n\nAtenciosamente,\nEquipe de Recepção",
-        it: " {saludo} {a},\n\na nome di Iberostar Waves Paraíso del Mar & Beach desideriamo ringraziarla per la sua fedeltà come membro IHG One Rewards.\n\nInterni: 8232, 8214 o 8113.\n\nCordiali saluti,\nTeam di Ricevimento",
-        zh: " {saludo} {a}，\n\nIberostar Waves Paraíso del Mar & Beach 衷心感谢您作为 IHG One Rewards 会员的忠诚支持。\n\n如需任何帮助，请拨打分机 8232、8214 或 8113。\n\n顺致嘉德，\n前台团队"
+        es: "{saludo} {a},\n\nTal como comentamos durante su check-in, en Iberostar Waves Paraíso del Mar & Beach queremos agradecerle nuevamente su lealtad como miembro {nivel} de IHG One Rewards. Nos da mucho gusto recibirle y que nos haya elegido para su estancia.\n\nEsperamos que disfrute cada momento con nosotros y que tenga una experiencia muy especial.\n\nPara cualquier asistencia durante su estancia, con gusto estamos a su disposición en las extensiones 8232, 8214 o 8113.\n\nSaludos cordiales,\nEquipo de Recepción",
+        en: "{saludo} {a},\n\nAs we mentioned during your check-in, at Iberostar Waves Paraíso del Mar & Beach we would like to thank you once again for your loyalty as a {nivel} member of IHG One Rewards. It is our pleasure to welcome you, and we truly appreciate you choosing us for your stay.\n\nWe hope you enjoy every moment with us and that your stay is a memorable one.\n\nFor any assistance during your stay, please feel free to contact us at extensions 8232, 8214, or 8113.\n\nKind regards,\nFront Desk Team",
+        de: "{saludo} {a},\n\nwie wir während Ihres Check-ins erwähnt haben, möchten wir Ihnen im Iberostar Waves Paraíso del Mar & Beach erneut für Ihre Treue als {nivel}-Mitglied von IHG One Rewards danken. Es ist uns eine Freude, Sie willkommen zu heißen, und wir schätzen es sehr, dass Sie sich für uns entschieden haben.\n\nWir hoffen, dass Sie jeden Moment bei uns genießen und Ihren Aufenthalt unvergesslich finden.\n\nFür jede Unterstützung während Ihres Aufenthalts stehen wir Ihnen gerne unter den Durchwahlen 8232, 8214 oder 8113 zur Verfügung.\n\nMit freundlichen Grüßen,\nEmpfangsteam",
+        fr: "{saludo} {a},\n\nComme nous vous l'avons mentionné lors de votre check-in, à l'Iberostar Waves Paraíso del Mar & Beach nous souhaitons vous remercier à nouveau pour votre fidélité en tant que membre {nivel} d'IHG One Rewards. C'est un plaisir de vous accueillir et nous apprécions vraiment que vous nous ayez choisis pour votre séjour.\n\nNous espérons que vous profiterez de chaque instant avec nous et que votre séjour sera mémorable.\n\nPour toute assistance durant votre séjour, nous sommes à votre disposition aux extensions 8232, 8214 ou 8113.\n\nCordialement,\nL'équipe de Réception",
+        pt: "{saludo} {a},\n\nComo mencionamos durante o seu check-in, no Iberostar Waves Paraíso do Mar & Beach gostaríamos de agradecê-lo novamente pela sua lealdade como membro {nivel} do IHG One Rewards. É um prazer recebê-lo e agradecemos muito por ter nos escolhido para sua estadia.\n\nEsperamos que aproveite cada momento conosco e que sua estadia seja inesquecível.\n\nPara qualquer assistência durante sua estadia, estamos à sua disposição nos ramais 8232, 8214 ou 8113.\n\nAtenciosamente,\nEquipe de Recepção",
+        it: "{saludo} {a},\n\nCome le abbiamo menzionato durante il check-in, all'Iberostar Waves Paraíso del Mar & Beach desideriamo ringraziarla nuovamente per la sua fedeltà come membro {nivel} di IHG One Rewards. È un piacere darle il benvenuto e apprezziamo molto che abbia scelto noi per il suo soggiorno.\n\nSperiamo che possa godere di ogni momento con noi e che il suo soggiorno sia indimenticabile.\n\nPer qualsiasi assistenza durante il soggiorno, siamo a sua disposizione agli interni 8232, 8214 o 8113.\n\nCordiali saluti,\nTeam di Ricevimento",
+        zh: "{saludo} {a}，\n\n正如我们在您办理入住手续时所提到的，Iberostar Waves Paraíso del Mar & Beach 衷心感谢您作为 IHG One Rewards {nivel} 会员的忠诚支持。很高兴欢迎您的到来，感谢您选择我们作为您的住宿地点。\n\n希望您享受与我们在一起的每一刻，并留下美好的回忆。\n\n如在住宿期间需要任何协助，请随时拨打分机 8232、8214 或 8113 与我们联系。\n\n顺致嘉德，\n前台团队"
     };
 
     function setLang(lang, btn) {
@@ -408,7 +441,6 @@
 
     function setTrato(trato) {
         currentTrato = trato;
-        // botones con id btn-h (hombre) y btn-m (mujer)
         const elH = document.getElementById('btn-h');
         const elM = document.getElementById('btn-m');
         if (elH) elH.classList.remove('active');
@@ -417,20 +449,28 @@
         if (target) target.classList.add('active');
     }
 
+    function setNivel(nivel, btn) {
+        currentNivel = nivel;
+        document.querySelectorAll('.btn-nivel').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
     function corregirNombre(texto) {
         if (!texto) return "Huésped";
         let limpio = texto.trim().replace(/\s+/g, ' ');
         return limpio.toLowerCase().split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
     }
 
-    // Copia el mensaje al portapapeles cuando se pulsa el botón lateral "MAR & BEACH"
     function copiar() {
         const inputNom = document.getElementById('apellido').value;
         const apellido = corregirNombre(inputNom);
         const saludoFinal = saludos[currentLang][currentTrato];
 
         let base = mensajes[currentLang];
-        let final = base.replace(/{saludo}/g, saludoFinal).replace(/{a}/g, apellido);
+        let final = base
+            .replace(/{saludo}/g, saludoFinal)
+            .replace(/{a}/g, apellido)
+            .replace(/{nivel}/g, currentNivel);
 
         navigator.clipboard.writeText(final).then(() => {
             const st = document.getElementById('status');
